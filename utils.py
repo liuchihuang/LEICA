@@ -1,4 +1,5 @@
 from scipy.sparse import *
+from mlabwrap import mlab
 
 
 def is_symmetric(m):
@@ -43,3 +44,14 @@ def is_symmetric(m):
     check = np.allclose(vl, vu)
 
     return check
+
+
+def read_cifti_data(filename):
+    wbc = '/fs/nara-scratch/chliu/fmri_proj/workbench/bin_rh_linux64/wb_command'
+    cii_data = mlab.myciftiopen(filename, wbc)
+    return cii_data
+
+
+def save_cifti_data(data, filename):
+    wbc = '/fs/nara-scratch/chliu/fmri_proj/workbench/bin_rh_linux64/wb_command'
+    mlab.myciftisave(data, filename, wbc)

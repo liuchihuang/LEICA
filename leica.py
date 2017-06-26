@@ -26,12 +26,14 @@ class LEICA(object):
         self.independent_components = None
 
     # use different get functions for different data sets
+    # create your own in data_handler.py
     def get_filenames(self):
         filenames = get_hcp_resting(self.data_dir)
+        # filenames = your_get_function(self.data_dir)
         return filenames
 
     def full_corr_matrix(self):
-        print 'computing full correlation coefficient matrix'
+        print 'Computing full group correlation coefficient matrix...'
         for filename in self.filenames:
             print '%s...' % filename,
             one_data = read_cifti_data(filename)  # for hcp cifti data
@@ -40,14 +42,17 @@ class LEICA(object):
         self.corr_matrix /= self.n_files
 
     def remove_poor_connected_voxels(self):  # remove %1 poorest connected voxels
+        print 'Removing poor connected voxels...',
         degree = np.sum(self.corr_matrix, axis=0)
         degree_ind = np.argsort(degree)
         self.mask = [degree_ind[i] for i in range(self.n_voxels / 100, self.n_voxels)]
         self.corr_matrix = self.corr_matrix[self.mask, :]
         self.corr_matrix = self.corr_matrix[:, self.mask]
         self.n_mask_voxels = self.corr_matrix.shape[0]
+        print 'done'
 
     def knn_corr_matrix(self):
+        print 'Computing k nearest neighbor correlation matrix...',
         self.remove_poor_connected_voxels()
         for i in range(self.n_mask_voxels):
             row = self.corr_matrix[i, :]
@@ -71,9 +76,12 @@ class LEICA(object):
         self.corr_matrix.eliminate_zeros()
 
         assert is_symmetric(self.corr_matrix)
+        print 'done'
+        print 'Average number of neighbors:',
         print len(self.corr_matrix.data) / self.n_mask_voxels
 
     def laplacian_eigenmaps(self):
+        print 'Computing Laplacian Eigenmaps...',
         degree = np.zeros(self.n_mask_voxels)
         degree_root = np.zeros(self.n_mask_voxels)
 
@@ -91,17 +99,13 @@ class LEICA(object):
             self.corr_matrix.data[self.corr_matrix.indptr[i]:self.corr_matrix.indptr[i + 1]] *= degree_root[i]
         self.corr_matrix = self.corr_matrix.tocsr()
 
-        print 'done'
-
-        print 'computing eigen decomposition...',
         eigenvalues, self.eigenmaps = sparse.linalg.eigsh(self.corr_matrix, self.n_components+1, which='LA', tol=10**-10)
         self.eigenmaps = self.eigenmaps[:, -self.n_components - 1:-1]  # eliminate one evec
         print 'done'
-
-        print eigenvalues
+        print 'Eigenvalues:', eigenvalues
 
     def ica(self):
-        print 'Starting ICA...'
+        print 'Starting ICA...',
         fica = FastICA(n_components=self.n_components, max_iter=10000)
         ic = fica.fit_transform(self.eigenmaps)
         ic = scale(ic, axis=0)
@@ -111,9 +115,11 @@ class LEICA(object):
                 ic[:, i] = -ic[:, i]
         self.independent_components = np.zeros((self.n_voxels, self.n_components))
         self.independent_components[self.mask, :] = ic
-        print self.independent_components.shape
+        print 'done'
+        print 'Components have shape:', self.independent_components.shape
 
     def save_outputs(self):
+        print 'Saving results...',
         np.save(os.path.join(self.output_dir, self.batch_name+'_leica.npy'), self.independent_components)
         save_cifti_data(self.independent_components, os.path.join(self.output_dir, self.batch_name+'_leica.dtseries.nii'))
 
@@ -126,5 +132,5 @@ class LEICA(object):
                         self.batch_name+'_leica.dtseries.nii'), 'ROW', os.path.join(self.output_dir,
                         self.batch_name+'_leica.dscalar.nii'), '-name-file', os.path.join(self.output_dir, '.list')])
 
-
+        print 'done'
 
