@@ -1,3 +1,10 @@
+##############################################################################
+#
+#  LEICA: Laplacian Eigenmaps for group ICA Decomposition of fMRI data
+#
+##############################################################################
+
+
 import os
 import subprocess
 import numpy as np
@@ -174,7 +181,10 @@ class LEICA(object):
         self.ica()
         self.save_outputs()
 
-
+# data_dir is the root directory of the data set
+# if the number of neighbors k is not specified, it will be estimated
+# if the output directory is not set, the outputs will be stored in ./leica/
+# wbc is the address to connectome workbench command
 if __name__ == '__main__':
     data_dir = '/fs/nara-scratch/HCP_S900_100unrelated_rsfMRI_fix/'
     output_dir = '/fs/nara-scratch/chliu/fmri_proj/result/'
