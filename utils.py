@@ -75,4 +75,7 @@ def read_cifti_data(filename):
 
 
 def save_cifti_data(data, filename, wbc):
+    """
+    call the Matlab script to save to CIFTI format
+    """
     mlab.myciftisave(data, filename, wbc)

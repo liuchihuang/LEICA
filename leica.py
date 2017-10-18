@@ -4,7 +4,6 @@
 #
 ##############################################################################
 
-
 import os
 import subprocess
 import numpy as np
@@ -31,15 +30,19 @@ class LEICA(object):
         self.independent_components = None
         self.wbc = wbc
 
-    # use different get functions for different data sets
-    # create your own in utils.py
     def get_filenames(self):
+        """
+        use different get functions for different data sets
+        create your own in utils.py
+        """
         self.filenames = get_hcp_resting(self.data_dir)
         # self.filenames = your_get_function(self.data_dir)
         self.n_files = len(self.filenames)
 
-    # Computes the group average full correlation matrix
     def full_corr_matrix(self):
+        """
+        Computes the group average full correlation matrix
+        """
         print 'Computing full group correlation coefficient matrix ...'
         for filename in self.filenames:
             print 'loading %s...' % filename
@@ -52,16 +55,20 @@ class LEICA(object):
         self.corr_matrix /= self.n_files
         self.n_mask_voxels = self.corr_matrix.shape[0]
 
-    # Estimates k using z-score based method
     def estimate_k(self, th=2):
+        """
+        Estimates k using z-score based method
+        """
         z_matrix = scale(self.corr_matrix, axis=1)
         z_matrix[z_matrix < th] = 0
         self.k = np.count_nonzero(z_matrix) / self.n_voxels
         print 'Estimated number of nearest neighbors k is:', self.k
 
-    # Optional step to remove poorly conencted voxels. Voxels that are not
-    # well connected with other voxels are considered to be not meaningful/noise.
     def remove_poor_connected_voxels(self):
+        """
+        Optional step to remove poorly conencted voxels. Voxels that are not
+        well connected with other voxels are considered to be not meaningful/noise.
+        """
         print 'Removing poorly connected voxels ...'
         degree = np.sum(self.corr_matrix, axis=0)
         degree_ind = np.argsort(degree)
@@ -70,8 +77,10 @@ class LEICA(object):
         self.corr_matrix = self.corr_matrix[:, self.mask]
         self.n_mask_voxels = self.corr_matrix.shape[0]
 
-    # Build a sparse k nearest neighbors correlation matrix from the full correlation matrix
     def knn_corr_matrix(self):
+        """
+        Build a sparse k nearest neighbors correlation matrix from the full correlation matrix
+        """
         print 'Computing k nearest neighbor correlation matrix ...'
         for i in range(self.n_mask_voxels):
             row = self.corr_matrix[i, :]
@@ -96,8 +105,10 @@ class LEICA(object):
 
         assert is_symmetric(self.corr_matrix)
 
-    # Computes the Laplacian Eigenmaps decomposition of the knn matrix
     def laplacian_eigenmaps(self):
+        """
+        Computes the Laplacian Eigenmaps decomposition of the knn matrix
+        """
         print 'Computing Laplacian Eigenmaps ...'
         degree = np.zeros(self.n_mask_voxels)
         degree_root = np.zeros(self.n_mask_voxels)
@@ -120,8 +131,10 @@ class LEICA(object):
         self.eigenmaps = self.eigenmaps[:, -self.n_components - 1:-1]  # eliminate one evec
         print 'Eigenvalues:', 1 - eigenvals
 
-    # Computes ICA and flips sign of the components
     def ica(self):
+        """
+        Computes ICA and flips sign of the components
+        """
         print 'Starting ICA ...'
         fica = FastICA(n_components=self.n_components, max_iter=10000)
         ic = fica.fit_transform(self.eigenmaps)
@@ -135,9 +148,11 @@ class LEICA(object):
             self.independent_components[self.mask, :] = ic
         print 'Components have shape:', self.independent_components.shape
 
-    # Save the ICA components, and convert both the thresholded and non-thresholded
-    # components to CIFTI format
     def save_outputs(self):
+        """
+        Save the ICA components, and convert both the thresholded and non-thresholded
+        components to CIFTI format
+        """
         print 'Saving results ...'
         if not os.path.isdir(self.output_dir):
             subprocess.call(['mkdir', '-p', output_dir])
@@ -145,16 +160,19 @@ class LEICA(object):
         save_cifti_data(self.independent_components,
                         os.path.join(self.output_dir, self.batch_name+'_leica.dtseries.nii'), self.wbc)
 
+        # create a temporary list that's necessary for converting CIFTI series to scalars
         list_file = open(os.path.join(self.output_dir, 'leica_list'), 'w')
         for i in range(self.n_components):
             list_file.write('%d\n' % (i+1))
         list_file.close()
 
+        # save non-thresholded spatial maps
         subprocess.call(['wb_command', '-cifti-convert-to-scalar', os.path.join(self.output_dir,
                         self.batch_name+'_leica.dtseries.nii'), 'ROW', os.path.join(self.output_dir,
                         self.batch_name+'_leica.dscalar.nii'), '-name-file',
                         os.path.join(self.output_dir, 'leica_list')])
 
+        # save thresholded spatial maps
         self.independent_components[self.independent_components < 2] = 0
         save_cifti_data(self.independent_components,
                         os.path.join(self.output_dir, self.batch_name + '_leica_thresholded.dtseries.nii'))
@@ -166,8 +184,10 @@ class LEICA(object):
 
         subprocess.call(['rm', os.path.join(self.output_dir, 'leica_list')])
 
-    # Run the LEICA procedure
     def run_leica(self):
+        """
+        Run the LEICA procedure
+        """
         print 'Starting LEICA ...'
         self.get_filenames()
         self.full_corr_matrix()
