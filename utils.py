@@ -1,4 +1,7 @@
 from scipy.sparse import *
+import numpy as np
+import os
+import subprocess
 from mlabwrap import mlab
 
 
@@ -46,9 +49,28 @@ def is_symmetric(m):
     return check
 
 
+def get_hcp_resting(data_dir):
+    """
+    Return a list of addresses to data of each sessions of all subjects
+    """
+    subjects = os.listdir(data_dir)
+    # HCP fix denoised resting state dataset
+    sessions = ['rfMRI_REST1_LR', 'rfMRI_REST1_RL', 'rfMRI_REST2_LR', 'rfMRI_REST2_RL']
+    # filenames is a list of address to individual subject (session if each subject has multiple sessions)
+    filenames = [os.path.join(data_dir, subject, 'MNINonLinear/Results/%s/%s_Atlas_MSMAll_hp2000_clean.dtseries.nii'
+                              % (session, session)) for subject in subjects for session in sessions]
+    return filenames[0:2]
+
+
 def read_cifti_data(filename):
-    wbc = '/fs/nara-scratch/chliu/fmri_proj/workbench/bin_rh_linux64/wb_command'
-    cii_data = mlab.myciftiopen(filename, wbc)
+    """
+    Read HCP CIFTI data using the workbench command tool
+    """
+    tmpfile = 'tmpfile_rs.txt'
+    subprocess.call(['wb_command', '-cifti-convert', '-to-text', filename, tmpfile])
+    cii_data = np.loadtxt(tmpfile)
+    subprocess.call(['rm', tmpfile])
+    cii_data = cii_data[0:59412, :]  # select cortex data only
     return cii_data
 
 
