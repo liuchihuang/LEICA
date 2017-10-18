@@ -186,7 +186,7 @@ class LEICA(object):
 
     def run_leica(self):
         """
-        Run the LEICA procedure
+        Run LEICA procedure
         """
         print 'Starting LEICA ...'
         self.get_filenames()
