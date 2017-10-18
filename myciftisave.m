@@ -22,7 +22,7 @@ tstart=tic;
 % Note that 'save' is an "overloaded" function for objects
 % of class 'gifti', and as such its behavior is defined by the
 % 'gifti' class implementation
-cifti=ciftiopen('./cortex_only_template.dtseries.nii', wbcommand);
+cifti=ciftiopen('./cifti_templates/cortex_only_template.dtseries.nii', wbcommand);
 cifti.cdata=ciftidata;
 
 save(cifti,[filename '.gii'],'ExternalFileBinary')

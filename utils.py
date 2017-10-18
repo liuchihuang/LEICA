@@ -59,14 +59,14 @@ def get_hcp_resting(data_dir):
     # filenames is a list of address to individual subject (session if each subject has multiple sessions)
     filenames = [os.path.join(data_dir, subject, 'MNINonLinear/Results/%s/%s_Atlas_MSMAll_hp2000_clean.dtseries.nii'
                               % (session, session)) for subject in subjects for session in sessions]
-    return filenames[0:2]
+    return filenames
 
 
 def read_cifti_data(filename):
     """
     Read HCP CIFTI data using the workbench command tool
     """
-    tmpfile = 'tmpfile_rs.txt'
+    tmpfile = 'tmpfile_leica'
     subprocess.call(['wb_command', '-cifti-convert', '-to-text', filename, tmpfile])
     cii_data = np.loadtxt(tmpfile)
     subprocess.call(['rm', tmpfile])
