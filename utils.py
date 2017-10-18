@@ -74,6 +74,5 @@ def read_cifti_data(filename):
     return cii_data
 
 
-def save_cifti_data(data, filename):
-    wbc = '/fs/nara-scratch/chliu/fmri_proj/workbench/bin_rh_linux64/wb_command'
+def save_cifti_data(data, filename, wbc):
     mlab.myciftisave(data, filename, wbc)

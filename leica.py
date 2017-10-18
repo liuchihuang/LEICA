@@ -8,7 +8,7 @@ from utils import *
 
 
 class LEICA(object):
-    def __init__(self, data_dir, output_dir=None, n_components=20, k=None, batch_name=''):
+    def __init__(self, wbc, data_dir, output_dir=None, n_components=20, k=None, batch_name=''):
         self.n_voxels = None
         self.n_components = n_components
         self.data_dir = data_dir
@@ -22,6 +22,7 @@ class LEICA(object):
         self.output_dir = './leica' if output_dir is None else output_dir
         self.batch_name = batch_name
         self.independent_components = None
+        self.wbc = wbc
 
     # use different get functions for different data sets
     # create your own in utils.py
@@ -135,7 +136,7 @@ class LEICA(object):
             subprocess.call(['mkdir', '-p', output_dir])
         np.save(os.path.join(self.output_dir, self.batch_name+'_leica.npy'), self.independent_components)
         save_cifti_data(self.independent_components,
-                        os.path.join(self.output_dir, self.batch_name+'_leica.dtseries.nii'))
+                        os.path.join(self.output_dir, self.batch_name+'_leica.dtseries.nii'), self.wbc)
 
         list_file = open(os.path.join(self.output_dir, 'leica_list'), 'w')
         for i in range(self.n_components):
@@ -177,7 +178,8 @@ class LEICA(object):
 if __name__ == '__main__':
     data_dir = '/fs/nara-scratch/HCP_S900_100unrelated_rsfMRI_fix/'
     output_dir = '/fs/nara-scratch/chliu/fmri_proj/result/'
-    leica = LEICA(data_dir, output_dir, batch_name='test')
+    wbc = '/fs/nara-scratch/chliu/fmri_proj/workbench/bin_rh_linux64/wb_command'
+    leica = LEICA(wbc, data_dir, output_dir, batch_name='test')
     leica.run_leica()
 
 
