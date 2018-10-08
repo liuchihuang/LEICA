@@ -206,9 +206,9 @@ class LEICA(object):
 # if the output directory is not set, the outputs will be stored in ./leica/
 # wbc is the address to connectome workbench command
 if __name__ == '__main__':
-    data_dir = '/fs/nara-scratch/HCP_S900_100unrelated_rsfMRI_fix/'
-    output_dir = '/fs/nara-scratch/chliu/fmri_proj/result/'
-    wbc = '/fs/nara-scratch/chliu/fmri_proj/workbench/bin_rh_linux64/wb_command'
+    data_dir = 'path_to_data/HCP_S900_100unrelated_rsfMRI_fix/'
+    output_dir = './leica'
+    wbc = 'path_to_workbench/workbench/bin_rh_linux64/wb_command'
     leica = LEICA(wbc, data_dir, output_dir, batch_name='test')
     leica.run_leica()
 
