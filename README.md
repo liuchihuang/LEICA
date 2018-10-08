@@ -1,4 +1,4 @@
-# LEICA
+# LEICA: Laplacian Eigenmaps for group ICA Decomposition of fMRI data
 Implementation of [LEICA: Laplacian Eigenmaps for group ICA Decomposition of fMRI data](https://www.sciencedirect.com/science/article/pii/S1053811917310406).
 
 # Prerequisites
